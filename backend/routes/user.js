@@ -1,24 +1,19 @@
-const router = require('express').Router();
-const db = require('../db');
+import { Router } from 'express';
+import db from '../db.js';
+
+const router = Router();
 
 // GET /api/user/check?org_id=1&feature_key=dark_mode
-// No auth needed — org_id provides tenant scoping
 router.get('/check', async (req, res) => {
   const { org_id, feature_key } = req.query;
-
   if (!org_id || !feature_key) {
     return res.status(400).json({ error: 'org_id and feature_key are required query parameters' });
   }
-
   const [[flag]] = await db.execute(
     'SELECT is_enabled FROM feature_flags WHERE feature_key = ? AND org_id = ?',
     [feature_key, org_id]
   );
-
-  if (!flag) {
-    return res.json({ found: false, is_enabled: false });
-  }
-
+  if (!flag) return res.json({ found: false, is_enabled: false });
   res.json({ found: true, is_enabled: Boolean(flag.is_enabled) });
 });
 
@@ -35,4 +30,4 @@ router.get('/flags', async (req, res) => {
   res.json(rows);
 });
 
-module.exports = router;
+export default router;

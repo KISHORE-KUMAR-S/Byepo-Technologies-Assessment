@@ -1,10 +1,10 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 /**
  * Auth middleware factory.
  * @param {string[]} roles - allowed roles; empty array = allow any authenticated user
  */
-module.exports = (roles = []) => (req, res, next) => {
+const auth = (roles = []) => (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1];
 
@@ -19,7 +19,9 @@ module.exports = (roles = []) => (req, res, next) => {
     }
     req.user = decoded;
     next();
-  } catch (err) {
+  } catch {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
+
+export default auth;

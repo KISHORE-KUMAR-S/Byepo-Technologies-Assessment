@@ -1,7 +1,9 @@
-const router = require('express').Router();
-const jwt = require('jsonwebtoken');
-const db = require('../db');
-const auth = require('../middleware/auth');
+import { Router } from 'express';
+import jwt from 'jsonwebtoken';
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+
+const router = Router();
 
 // Static Super Admin credentials — override via .env
 const SUPER_ADMIN = {
@@ -9,7 +11,7 @@ const SUPER_ADMIN = {
   password: process.env.SUPER_ADMIN_PASS || 'superpass123',
 };
 
-// POST /api/superadmin/login
+// POST /api/superadmin/login  (kept for backward compat)
 router.post('/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -18,11 +20,7 @@ router.post('/login', (req, res) => {
   if (email !== SUPER_ADMIN.email || password !== SUPER_ADMIN.password) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  const token = jwt.sign(
-    { role: 'super_admin' },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
+  const token = jwt.sign({ role: 'super_admin' }, process.env.JWT_SECRET, { expiresIn: '1d' });
   res.json({ token });
 });
 
@@ -30,7 +28,7 @@ router.post('/login', (req, res) => {
 router.post('/organizations', auth(['super_admin']), async (req, res) => {
   try {
     const { name } = req.body;
-    if (!name || !name.trim()) {
+    if (!name?.trim()) {
       return res.status(400).json({ error: 'Organization name is required' });
     }
     const [result] = await db.execute(
@@ -66,4 +64,4 @@ router.delete('/organizations/:id', auth(['super_admin']), async (req, res) => {
   res.json({ message: 'Organization deleted' });
 });
 
-module.exports = router;
+export default router;

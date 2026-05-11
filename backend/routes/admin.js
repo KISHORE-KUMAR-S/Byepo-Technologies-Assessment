@@ -1,8 +1,10 @@
-const router = require('express').Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('../db');
-const auth = require('../middleware/auth');
+import { Router } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import db from '../db.js';
+import auth from '../middleware/auth.js';
+
+const router = Router();
 
 // POST /api/admin/signup
 router.post('/signup', async (req, res) => {
@@ -11,7 +13,6 @@ router.post('/signup', async (req, res) => {
     if (!email || !password || !org_id) {
       return res.status(400).json({ error: 'email, password, and org_id are required' });
     }
-    // Verify org exists
     const [[org]] = await db.execute('SELECT id FROM organizations WHERE id = ?', [org_id]);
     if (!org) {
       return res.status(404).json({ error: 'Organization not found' });
@@ -51,14 +52,13 @@ router.post('/login', async (req, res) => {
   res.json({ token, org_id: user.org_id });
 });
 
-// POST /api/admin/flags  — create a new feature flag
+// POST /api/admin/flags
 router.post('/flags', auth(['org_admin']), async (req, res) => {
   try {
     const { feature_key, is_enabled } = req.body;
-    if (!feature_key || !feature_key.trim()) {
+    if (!feature_key?.trim()) {
       return res.status(400).json({ error: 'feature_key is required' });
     }
-    // Validate: alphanumeric + underscores only
     if (!/^[a-zA-Z0-9_]+$/.test(feature_key.trim())) {
       return res.status(400).json({ error: 'feature_key may only contain letters, numbers, and underscores' });
     }
@@ -75,7 +75,7 @@ router.post('/flags', auth(['org_admin']), async (req, res) => {
   }
 });
 
-// GET /api/admin/flags  — list all flags for the admin's org
+// GET /api/admin/flags
 router.get('/flags', auth(['org_admin']), async (req, res) => {
   const [rows] = await db.execute(
     'SELECT * FROM feature_flags WHERE org_id = ? ORDER BY created_at DESC',
@@ -84,7 +84,7 @@ router.get('/flags', auth(['org_admin']), async (req, res) => {
   res.json(rows);
 });
 
-// PUT /api/admin/flags/:id  — toggle enabled/disabled
+// PUT /api/admin/flags/:id
 router.put('/flags/:id', auth(['org_admin']), async (req, res) => {
   const { is_enabled } = req.body;
   if (is_enabled === undefined) {
@@ -112,4 +112,4 @@ router.delete('/flags/:id', auth(['org_admin']), async (req, res) => {
   res.json({ message: 'Flag deleted' });
 });
 
-module.exports = router;
+export default router;

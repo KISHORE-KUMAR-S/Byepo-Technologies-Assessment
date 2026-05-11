@@ -1,6 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import 'dotenv/config';
+
+import authRoutes from './routes/auth.js';
+import superadminRoutes from './routes/superadmin.js';
+import adminRoutes from './routes/admin.js';
+import userRoutes from './routes/user.js';
 
 const app = express();
 
@@ -11,9 +16,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.use('/api/superadmin', require('./routes/superadmin'));
-app.use('/api/admin',      require('./routes/admin'));
-app.use('/api/user',       require('./routes/user'));
+app.use('/api/auth', authRoutes);
+app.use('/api/superadmin', superadminRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/user', userRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
