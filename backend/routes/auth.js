@@ -10,24 +10,18 @@ const SUPER_ADMIN = {
   password: process.env.SUPER_ADMIN_PASS || 'superpass123',
 };
 
-/**
- * POST /api/auth/login
- * Unified login — checks super admin first, then org_admin in DB.
- * Returns: { token, role, org_id? }
- */
+// unified login — handles both super admin and org admin
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  // 1. Check super admin (static credentials)
   if (email === SUPER_ADMIN.email && password === SUPER_ADMIN.password) {
     const token = jwt.sign({ role: 'super_admin' }, process.env.JWT_SECRET, { expiresIn: '1d' });
     return res.json({ token, role: 'super_admin' });
   }
 
-  // 2. Check org_admin in DB
   const [[user]] = await db.execute(
     'SELECT * FROM users WHERE email = ? AND role = "org_admin"',
     [email]
@@ -44,10 +38,6 @@ router.post('/login', async (req, res) => {
   res.status(401).json({ error: 'Invalid credentials' });
 });
 
-/**
- * POST /api/auth/signup
- * Register a new org_admin account.
- */
 router.post('/signup', async (req, res) => {
   try {
     const { email, password, org_id } = req.body;
