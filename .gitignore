@@ -1,4 +1,12 @@
 backend/node_modules
-frontend/node_modules
-frontend/dist
-byepo-skill.md
+user-app/node_modules
+user-app/dist
+super-admin-app/node_modules
+super-admin-app/dist
+admin-app/dist
+admin-app/node_modules
+admin-app/package-lock.json
+super-admin-app/package-lock.json
+user-app/package-lock.json
+super-admin-app/package-lock.json
+backend/.env
