@@ -17,6 +17,14 @@ router.get('/check', async (req, res) => {
   res.json({ found: true, is_enabled: Boolean(flag.is_enabled) });
 });
 
+// GET /api/user/orgs — list all organizations (public, for org picker)
+router.get('/orgs', async (req, res) => {
+  const [rows] = await db.execute(
+    'SELECT id, name FROM organizations ORDER BY name ASC'
+  );
+  res.json(rows);
+});
+
 // GET /api/user/flags?org_id=1 — list all flags for an org (public)
 router.get('/flags', async (req, res) => {
   const { org_id } = req.query;

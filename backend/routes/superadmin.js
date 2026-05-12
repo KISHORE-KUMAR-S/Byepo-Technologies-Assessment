@@ -5,13 +5,12 @@ import auth from '../middleware/auth.js';
 
 const router = Router();
 
-// Static Super Admin credentials — override via .env
 const SUPER_ADMIN = {
   email: process.env.SUPER_ADMIN_EMAIL || 'super@admin.com',
   password: process.env.SUPER_ADMIN_PASS || 'superpass123',
 };
 
-// POST /api/superadmin/login  (kept for backward compat)
+// kept for backward compat, main login is /api/auth/login
 router.post('/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -24,7 +23,6 @@ router.post('/login', (req, res) => {
   res.json({ token });
 });
 
-// POST /api/superadmin/organizations
 router.post('/organizations', auth(['super_admin']), async (req, res) => {
   try {
     const { name } = req.body;
@@ -44,7 +42,6 @@ router.post('/organizations', auth(['super_admin']), async (req, res) => {
   }
 });
 
-// GET /api/superadmin/organizations
 router.get('/organizations', auth(['super_admin']), async (req, res) => {
   const [rows] = await db.execute(
     'SELECT id, name, created_at FROM organizations ORDER BY created_at DESC'
@@ -52,7 +49,6 @@ router.get('/organizations', auth(['super_admin']), async (req, res) => {
   res.json(rows);
 });
 
-// DELETE /api/superadmin/organizations/:id
 router.delete('/organizations/:id', auth(['super_admin']), async (req, res) => {
   const [result] = await db.execute(
     'DELETE FROM organizations WHERE id = ?',
