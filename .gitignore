@@ -10,3 +10,4 @@ super-admin-app/package-lock.json
 user-app/package-lock.json
 super-admin-app/package-lock.json
 backend/.env
+.claude
