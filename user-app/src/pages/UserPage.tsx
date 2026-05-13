@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { getOrgs, checkFlag } from '@/lib/api';
 import type { Org } from '@/lib/api';
 
 export default function UserPage() {
   const [orgs, setOrgs] = useState<Org[]>([]);
-  const [orgId, setOrgId] = useState<number | ''>('');
+  const [orgId, setOrgId] = useState('');
   const [featureKey, setFeatureKey] = useState('');
   const [result, setResult] = useState<{ found: boolean; is_enabled: boolean } | null>(null);
   const [error, setError] = useState('');
@@ -30,72 +34,62 @@ export default function UserPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '80px auto', padding: '0 16px' }}>
-      <h1 style={{ marginBottom: 8 }}>Feature Flag Checker</h1>
-      <p style={{ color: '#666', marginBottom: 24, fontSize: 14 }}>
-        Check if a feature is enabled for your organization.
-      </p>
+    <main className="flex min-h-svh items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl">Feature Flag Checker</CardTitle>
+          <CardDescription>Check if a feature is enabled for your organization.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label>Organization</Label>
+              <Select value={orgId} onValueChange={v => { setOrgId(v); setResult(null); }} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select organization…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {orgs.map(o => (
+                    <SelectItem key={o.id} value={String(o.id)}>{o.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 500 }}>
-            Organization
-          </label>
-          <select
-            value={orgId}
-            onChange={e => { setOrgId(e.target.value ? Number(e.target.value) : ''); setResult(null); }}
-            required
-            style={{ width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14 }}
-          >
-            <option value="">Select organization…</option>
-            {orgs.map(o => (
-              <option key={o.id} value={o.id}>{o.name}</option>
-            ))}
-          </select>
-        </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="feature-key">Feature Key</Label>
+              <Input
+                id="feature-key"
+                type="text"
+                value={featureKey}
+                onChange={e => { setFeatureKey(e.target.value); setResult(null); }}
+                placeholder="e.g. dark_mode"
+                required
+                className="font-mono"
+              />
+            </div>
 
-        <div>
-          <label style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 500 }}>
-            Feature Key
-          </label>
-          <input
-            type="text"
-            value={featureKey}
-            onChange={e => { setFeatureKey(e.target.value); setResult(null); }}
-            placeholder="e.g. dark_mode"
-            required
-            style={{ width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14, fontFamily: 'monospace', boxSizing: 'border-box' }}
-          />
-        </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" disabled={!orgId || !featureKey.trim()}>
-          Check
-        </Button>
-      </form>
+            <Button type="submit" disabled={!orgId || !featureKey.trim()} className="w-full">
+              Check
+            </Button>
+          </form>
 
-      {error && <p style={{ color: 'red', marginTop: 16, fontSize: 14 }}>{error}</p>}
-
-      {result && (
-        <div style={{
-          marginTop: 20,
-          padding: 16,
-          borderRadius: 8,
-          border: '1px solid',
-          borderColor: result.is_enabled ? '#86efac' : '#e2e8f0',
-          background: result.is_enabled ? '#f0fdf4' : '#f8fafc',
-        }}>
-          <p style={{ margin: 0, fontWeight: 600, color: result.is_enabled ? '#166534' : '#475569' }}>
-            {!result.found
-              ? 'Feature not found for this organization'
-              : result.is_enabled
-              ? '✓ Feature is ENABLED'
-              : '✗ Feature is DISABLED'}
-          </p>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b', fontFamily: 'monospace' }}>
-            {featureKey}
-          </p>
-        </div>
-      )}
-    </div>
+          {result && (
+            <div className={`rounded-lg border p-4 ${result.is_enabled ? 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/30' : 'border-border bg-muted/40'}`}>
+              <p className={`font-semibold ${result.is_enabled ? 'text-green-800 dark:text-green-400' : 'text-muted-foreground'}`}>
+                {!result.found
+                  ? 'Feature not found for this organization'
+                  : result.is_enabled
+                  ? '✓ Feature is ENABLED'
+                  : '✗ Feature is DISABLED'}
+              </p>
+              <p className="mt-1 font-mono text-sm text-muted-foreground">{featureKey}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </main>
   );
 }
