@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { getFlags, createFlag, toggleFlag, deleteFlag } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import type { FeatureFlag } from '@/lib/api';
@@ -65,86 +68,100 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 style={{ margin: 0, fontSize: 22 }}>Feature Flags</h1>
-          {orgId && <p style={{ margin: '4px 0 0', color: '#666', fontSize: 13 }}>Org #{orgId}</p>}
+          <h1 className="text-2xl font-semibold">Feature Flags</h1>
+          {orgId && <p className="mt-1 text-sm text-muted-foreground">Org #{orgId}</p>}
         </div>
-        <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/login'); }}>Logout</Button>
+        <Button variant="outline" size="sm" onClick={() => { logout(); navigate('/login'); }}>
+          Logout
+        </Button>
       </div>
 
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, marginBottom: 24 }}>
-        <h2 style={{ margin: '0 0 12px', fontSize: 15 }}>Add Flag</h2>
-        <form onSubmit={handleCreate} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="feature_key"
-            value={newKey}
-            onChange={e => setNewKey(e.target.value)}
-            pattern="[a-zA-Z0-9_]+"
-            title="Letters, numbers, underscores only"
-            style={{ flex: 1, minWidth: 160, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14 }}
-          />
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14 }}>
-            <input
-              type="checkbox"
-              checked={newEnabled}
-              onChange={e => setNewEnabled(e.target.checked)}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Add Flag</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreate} className="flex flex-wrap gap-2">
+            <Input
+              type="text"
+              placeholder="feature_key"
+              value={newKey}
+              onChange={e => setNewKey(e.target.value)}
+              pattern="[a-zA-Z0-9_]+"
+              title="Letters, numbers, underscores only"
+              className="min-w-40 flex-1 font-mono"
             />
-            Enabled
-          </label>
-          <Button type="submit" disabled={!newKey.trim()}>Add</Button>
-        </form>
-        {createError && <p style={{ color: 'red', fontSize: 13, margin: '8px 0 0' }}>{createError}</p>}
-      </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={newEnabled}
+                onChange={e => setNewEnabled(e.target.checked)}
+                className="accent-primary"
+              />
+              Enabled
+            </label>
+            <Button type="submit" disabled={!newKey.trim()}>Add</Button>
+          </form>
+          {createError && (
+            <p className="mt-2 text-sm text-destructive">{createError}</p>
+          )}
+        </CardContent>
+      </Card>
 
-      {error && <p style={{ color: 'red', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+      {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
       {loading ? (
-        <p style={{ color: '#666' }}>Loading...</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : flags.length === 0 ? (
-        <p style={{ color: '#666' }}>No flags yet.</p>
+        <p className="text-sm text-muted-foreground">No flags yet.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-              <th style={{ padding: '8px 12px', fontWeight: 600, color: '#475569' }}>Key</th>
-              <th style={{ padding: '8px 12px', fontWeight: 600, color: '#475569' }}>Status</th>
-              <th style={{ padding: '8px 12px', fontWeight: 600, color: '#475569' }}>Created</th>
-              <th style={{ padding: '8px 12px', fontWeight: 600, color: '#475569' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {flags.map(flag => (
-              <tr key={flag.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '10px 12px', fontFamily: 'monospace' }}>{flag.feature_key}</td>
-                <td style={{ padding: '10px 12px' }}>
-                  <span style={{
-                    background: flag.is_enabled ? '#dcfce7' : '#f1f5f9',
-                    color: flag.is_enabled ? '#166534' : '#64748b',
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    fontSize: 12,
-                  }}>
-                    {flag.is_enabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                </td>
-                <td style={{ padding: '10px 12px', color: '#64748b' }}>
-                  {new Date(flag.created_at).toLocaleDateString()}
-                </td>
-                <td style={{ padding: '10px 12px', display: 'flex', gap: 8 }}>
-                  <Button variant="outline" size="sm" onClick={() => handleToggle(flag)}>
-                    {flag.is_enabled ? 'Disable' : 'Enable'}
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(flag.id)} style={{ color: '#ef4444' }}>
-                    Delete
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Card>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="px-4 py-3 font-medium text-muted-foreground">Key</th>
+                  <th className="px-4 py-3 font-medium text-muted-foreground">Status</th>
+                  <th className="px-4 py-3 font-medium text-muted-foreground">Created</th>
+                  <th className="px-4 py-3 font-medium text-muted-foreground">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {flags.map(flag => (
+                  <tr key={flag.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3 font-mono">{flag.feature_key}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={flag.is_enabled ? 'success' : 'muted'}>
+                        {flag.is_enabled ? 'Enabled' : 'Disabled'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(flag.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleToggle(flag)}>
+                          {flag.is_enabled ? 'Disable' : 'Enable'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(flag.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
